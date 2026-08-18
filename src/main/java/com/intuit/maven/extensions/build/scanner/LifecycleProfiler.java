@@ -3,6 +3,7 @@ package com.intuit.maven.extensions.build.scanner;
 import static java.lang.System.currentTimeMillis;
 
 import com.intuit.maven.extensions.build.scanner.infra.DataWriter;
+import com.intuit.maven.extensions.build.scanner.infra.DiskDataStorage;
 import com.intuit.maven.extensions.build.scanner.infra.DiskDataWriter;
 import com.intuit.maven.extensions.build.scanner.model.*;
 import java.io.File;
@@ -138,14 +139,15 @@ public class LifecycleProfiler extends AbstractEventSpy {
 
             LOGGER.info("To view your build scan, start-up the server:");
             LOGGER.info(
-                "java -jar {}",
+                "java -jar {} {}",
                 mavenHome
                     + File.separator
                     + "lib"
                     + File.separator
                     + "ext"
                     + File.separator
-                    + "maven-build-scanner-jar-with-dependencies.jar");
+                    + "maven-build-scanner-jar-with-dependencies.jar",
+                DiskDataStorage.defaultDirectory());
             LOGGER.info(
                 "Then open http://localhost:3000/?projectId={}&sessionId={}",
                 sessionProfile.getProject().getId(),

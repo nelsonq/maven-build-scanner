@@ -9,27 +9,52 @@ import com.intuit.maven.extensions.build.scanner.model.SessionSummary;
 import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
+import lombok.Getter;
 import lombok.SneakyThrows;
 
 public class DiskDataStorage {
-  private static final String RESULTS =
-      System.getProperty("user.home") + File.separator + ".mvn" + File.separator + "scans";
-  private static final String SESSION_SUMMARIES = RESULTS + File.separator + "session-summaries";
-  private static final String PROJECT_SUMMARIES = RESULTS + File.separator + "project-summaries";
-  private static final String SESSION_PROFILES = RESULTS + File.separator + "session-profiles";
+
+  /** Set to store scans somewhere other than {@code ${user.home}/.mvn/scans}. */
+  public static final String DIRECTORY_PROPERTY = "maven.build.scanner.dir";
+
+  /** Honoured when {@link #DIRECTORY_PROPERTY} is not set - for CI, where -D is awkward. */
+  public static final String DIRECTORY_ENV = "MAVEN_BUILD_SCANNER_DIR";
+
   private static final ObjectMapper MAPPER =
       new ObjectMapper().configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
 
+  @Getter private final String directory;
+  private final String sessionSummaries, projectSummaries, sessionProfiles;
+
+  public DiskDataStorage() {
+    this(defaultDirectory());
+  }
+
+  public DiskDataStorage(String directory) {
+    this.directory = directory;
+    this.sessionSummaries = directory + File.separator + "session-summaries";
+    this.projectSummaries = directory + File.separator + "project-summaries";
+    this.sessionProfiles = directory + File.separator + "session-profiles";
+  }
+
+  /** Where scans are stored unless a directory is named explicitly. */
+  public static String defaultDirectory() {
+    String directory = System.getProperty(DIRECTORY_PROPERTY, System.getenv(DIRECTORY_ENV));
+    return directory != null
+        ? directory
+        : System.getProperty("user.home") + File.separator + ".mvn" + File.separator + "scans";
+  }
+
   void open() {
-    new File(SESSION_PROFILES).mkdirs();
-    new File(PROJECT_SUMMARIES).mkdirs();
-    new File(SESSION_SUMMARIES).mkdirs();
+    new File(sessionProfiles).mkdirs();
+    new File(projectSummaries).mkdirs();
+    new File(sessionSummaries).mkdirs();
   }
 
   @SneakyThrows
   void updateProjectSummary(Project project, SessionProfile sessionProfile) {
     String path =
-        PROJECT_SUMMARIES
+        projectSummaries
             + File.separator
             + project.getGroupId()
             + "-"
@@ -56,20 +81,25 @@ public class DiskDataStorage {
 
   @SneakyThrows
   void updateSessionSummary(SessionProfile sessionProfile) {
-    String path = SESSION_SUMMARIES + File.separator + sessionProfile.getId() + ".json";
+    String path = sessionSummaries + File.separator + sessionProfile.getId() + ".json";
     MAPPER.writeValue(new File(path), getSessionSummary(sessionProfile));
   }
 
   @SneakyThrows
   void updateSessionProfile(SessionProfile sessionProfile) {
-    String path = SESSION_PROFILES + File.separator + sessionProfile.getId() + ".json";
+    String path = sessionProfiles + File.separator + sessionProfile.getId() + ".json";
     MAPPER.writeValue(new File(path), sessionProfile);
+  }
+
+  private static File[] listFiles(String directory) {
+    File[] files = new File(directory).listFiles();
+    return files == null ? new File[0] : files;
   }
 
   @SneakyThrows
   public List<ProjectSummary> listProjectSummaries() {
     List<ProjectSummary> items = new LinkedList<>();
-    for (File file : new File(PROJECT_SUMMARIES).listFiles()) {
+    for (File file : listFiles(projectSummaries)) {
       items.add(MAPPER.readValue(file, ProjectSummary.class));
     }
     return items;
@@ -78,7 +108,7 @@ public class DiskDataStorage {
   @SneakyThrows
   public List<SessionSummary> listSessionSummaries(String groupId, String artifactId) {
     List<SessionSummary> items = new LinkedList<>();
-    for (File file : new File(SESSION_SUMMARIES).listFiles()) {
+    for (File file : listFiles(sessionSummaries)) {
       SessionSummary item = MAPPER.readValue(file, SessionSummary.class);
       if (item.getProject().getGroupId().equals(groupId)
           && item.getProject().getArtifactId().equals(artifactId)) {
@@ -91,6 +121,6 @@ public class DiskDataStorage {
   @SneakyThrows
   public SessionProfile getSessionProfile(String id) {
     return MAPPER.readValue(
-        new File(SESSION_PROFILES + File.separator + id + ".json"), SessionProfile.class);
+        new File(sessionProfiles + File.separator + id + ".json"), SessionProfile.class);
   }
 }

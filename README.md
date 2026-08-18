@@ -125,3 +125,44 @@ This will print launch the server listening on port `3000. The report will show:
 ```bash
 docker compose stop && docker compose rm
 ```
+
+### Alternative 3: Export a self-contained report
+
+Useful when the build runs somewhere you cannot browse to - a CI agent or a remote node. Instead of
+running the server there, render the scans into a single HTML file and copy that back:
+
+```bash
+# On the machine that ran the build:
+ext="$(mvn help:evaluate -Dexpression=maven.home -DforceStdout -q)/lib/ext/maven-build-scanner-jar-with-dependencies.jar"
+java -cp $ext com.intuit.maven.extensions.build.scanner.Exporter report.html
+```
+
+Open `report.html` in a browser - no server, and the links between projects and sessions still work.
+Pass session ids to export only those builds:
+
+```bash
+java -cp $ext com.intuit.maven.extensions.build.scanner.Exporter report.html 0eb87c2c-3e30-4d0b-9dd9-c6cd35bf1b1e
+```
+
+The report still loads Bootstrap, jQuery and Google Charts from their CDNs, so viewing it needs
+internet access even though the build data is embedded.
+
+### Where scans are stored
+
+Scans default to `${user.home}/.mvn/scans`. Name a directory explicitly instead - the build writing
+its scans and the server or exporter reading them all take the same setting:
+
+```bash
+mvn install -Dmaven.build.scanner.dir=/data/scans        # the build writes here
+java -jar $ext /data/scans                               # the server reads here
+java -cp $ext com.intuit...Exporter --dir /data/scans report.html
+```
+
+`MAVEN_BUILD_SCANNER_DIR` does the same, for CI where passing `-D` into every step is awkward. So to
+view a remote node's scans locally, copy the directory down and point at it:
+
+```bash
+tar -czf scans.tgz -C "$HOME/.mvn" scans     # on the remote node
+tar -xzf scans.tgz -C ~/remote-scans         # locally
+java -jar $ext ~/remote-scans/scans
+```

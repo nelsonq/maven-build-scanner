@@ -19,7 +19,8 @@ public class Server {
       new ObjectMapper().configure(SerializationFeature.INDENT_OUTPUT, true);
 
   public static void main(String[] args) throws IOException {
-    DiskDataStorage diskDataStorage = new DiskDataStorage();
+    DiskDataStorage diskDataStorage =
+        new DiskDataStorage(args.length > 0 ? args[0] : DiskDataStorage.defaultDirectory());
     HttpServer server = HttpServer.create(new InetSocketAddress(3000), 0);
     server.createContext(
         "/",
@@ -83,6 +84,7 @@ public class Server {
           }
         });
 
+    System.out.println("Reading scans from " + diskDataStorage.getDirectory());
     System.out.println("Open http://localhost:3000 to view build scan results");
     server.start();
   }
