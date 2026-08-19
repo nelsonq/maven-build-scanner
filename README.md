@@ -144,8 +144,10 @@ Pass session ids to export only those builds:
 java -cp $ext com.intuit.maven.extensions.build.scanner.Exporter report.html 0eb87c2c-3e30-4d0b-9dd9-c6cd35bf1b1e
 ```
 
-The report still loads Bootstrap, jQuery and Google Charts from their CDNs, so viewing it needs
-internet access even though the build data is embedded.
+jQuery, Bootstrap, Popper and feather-icons are inlined from the copies in
+`src/main/resources/vendor`, so the report renders and reads with no network access. Google Charts
+is not - its loader fetches the rest of itself at runtime - so offline the timeline and the pie
+chart are the only things missing.
 
 ### Where scans are stored
 
