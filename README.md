@@ -134,14 +134,17 @@ running the server there, render the scans into a single HTML file and copy that
 ```bash
 # On the machine that ran the build:
 ext="$(mvn help:evaluate -Dexpression=maven.home -DforceStdout -q)/lib/ext/maven-build-scanner-jar-with-dependencies.jar"
-java -cp $ext com.intuit.maven.extensions.build.scanner.Exporter report.html
+java -cp $ext com.intuit.maven.extensions.build.scanner.Exporter
 ```
+
+The exporter writes `report.html` to the working directory. To write the report to another file, set
+`-Dmaven.build.scanner.report-file=<file>`.
 
 Open `report.html` in a browser - no server, and the links between projects and sessions still work.
 Pass session ids to export only those builds:
 
 ```bash
-java -cp $ext com.intuit.maven.extensions.build.scanner.Exporter report.html 0eb87c2c-3e30-4d0b-9dd9-c6cd35bf1b1e
+java -cp $ext com.intuit.maven.extensions.build.scanner.Exporter 0eb87c2c-3e30-4d0b-9dd9-c6cd35bf1b1e
 ```
 
 jQuery, Bootstrap, Popper and feather-icons are inlined from the copies in
@@ -157,7 +160,7 @@ its scans and the server or exporter reading them all take the same setting:
 ```bash
 mvn install -Dmaven.build.scanner.dir=/data/scans        # the build writes here
 java -Dmaven.build.scanner.dir=/data/scans -jar $ext     # the server reads here
-java -Dmaven.build.scanner.dir=/data/scans -cp $ext com.intuit...Exporter report.html
+java -Dmaven.build.scanner.dir=/data/scans -Dmaven.build.scanner.report-file=/data/reports/report.html -cp $ext com.intuit...Exporter
 ```
 
 `MAVEN_BUILD_SCANNER_DIR` does the same, for CI where passing `-D` into every step is awkward. So to

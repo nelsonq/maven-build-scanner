@@ -33,12 +33,18 @@ import org.apache.commons.io.IOUtils;
  * exception - its loader fetches the rest of itself at runtime - so the timeline and the pie chart,
  * and only those, still need network access.
  *
- * <p>Usage: {@code java [-Dmaven.build.scanner.dir=<scans>] -cp <jar> com.intuit...Exporter
- * [report.html] [sessionId...]} - with no session ids every scan is included, so the report is
- * navigable exactly like the server's. Scans are read from {@link
- * DiskDataStorage#defaultDirectory()}, the same directory the build wrote them to.
+ * <p>Usage: {@code java [-Dmaven.build.scanner.dir=<scans>]
+ * [-Dmaven.build.scanner.report-file=<report.html>] -cp <jar> com.intuit...Exporter [sessionId...]}
+ * - with no session ids every scan is included, so the report is navigable exactly like the
+ * server's. Scans are read from {@link DiskDataStorage#defaultDirectory()}, the same directory the
+ * build wrote them to, and the report is written to {@link #REPORT_FILE_PROPERTY}.
  */
 public class Exporter {
+
+  /** Set to write the report somewhere other than {@value #DEFAULT_REPORT_FILE}. */
+  public static final String REPORT_FILE_PROPERTY = "maven.build.scanner.report-file";
+
+  static final String DEFAULT_REPORT_FILE = "report.html";
 
   /** The first inline script in the page - everything up to it is markup and CDN script tags. */
   private static final String ANCHOR = "<script type=\"text/javascript\">";
@@ -68,10 +74,8 @@ public class Exporter {
   }
 
   public static void main(String[] args) throws IOException {
-    List<String> arguments = new ArrayList<>(Arrays.asList(args));
-
-    File output = new File(arguments.isEmpty() ? "report.html" : arguments.remove(0));
-    Set<String> sessionIds = new HashSet<>(arguments);
+    File output = new File(System.getProperty(REPORT_FILE_PROPERTY, DEFAULT_REPORT_FILE));
+    Set<String> sessionIds = new HashSet<>(Arrays.asList(args));
 
     DiskDataStorage diskDataStorage = new DiskDataStorage();
     Map<String, Object> data = new LinkedHashMap<>();
