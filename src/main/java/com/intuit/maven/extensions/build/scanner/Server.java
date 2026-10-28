@@ -19,8 +19,7 @@ public class Server {
       new ObjectMapper().configure(SerializationFeature.INDENT_OUTPUT, true);
 
   public static void main(String[] args) throws IOException {
-    DiskDataStorage diskDataStorage =
-        new DiskDataStorage(args.length > 0 ? args[0] : DiskDataStorage.defaultDirectory());
+    DiskDataStorage diskDataStorage = new DiskDataStorage();
     HttpServer server = HttpServer.create(new InetSocketAddress(3000), 0);
     server.createContext(
         "/",

@@ -156,8 +156,8 @@ its scans and the server or exporter reading them all take the same setting:
 
 ```bash
 mvn install -Dmaven.build.scanner.dir=/data/scans        # the build writes here
-java -jar $ext /data/scans                               # the server reads here
-java -cp $ext com.intuit...Exporter --dir /data/scans report.html
+java -Dmaven.build.scanner.dir=/data/scans -jar $ext     # the server reads here
+java -Dmaven.build.scanner.dir=/data/scans -cp $ext com.intuit...Exporter report.html
 ```
 
 `MAVEN_BUILD_SCANNER_DIR` does the same, for CI where passing `-D` into every step is awkward. So to
@@ -166,5 +166,5 @@ view a remote node's scans locally, copy the directory down and point at it:
 ```bash
 tar -czf scans.tgz -C "$HOME/.mvn" scans     # on the remote node
 tar -xzf scans.tgz -C ~/remote-scans         # locally
-java -jar $ext ~/remote-scans/scans
+java -Dmaven.build.scanner.dir=$HOME/remote-scans/scans -jar $ext
 ```

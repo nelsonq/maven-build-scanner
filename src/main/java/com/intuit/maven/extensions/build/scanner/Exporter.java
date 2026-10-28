@@ -33,10 +33,10 @@ import org.apache.commons.io.IOUtils;
  * exception - its loader fetches the rest of itself at runtime - so the timeline and the pie chart,
  * and only those, still need network access.
  *
- * <p>Usage: {@code java -cp <jar> com.intuit...Exporter [--dir <scans>] [report.html]
- * [sessionId...]} - with no session ids every scan is included, so the report is navigable exactly
- * like the server's. Scans are read from {@code --dir} if given, otherwise from {@link
- * DiskDataStorage#defaultDirectory()}.
+ * <p>Usage: {@code java [-Dmaven.build.scanner.dir=<scans>] -cp <jar> com.intuit...Exporter
+ * [report.html] [sessionId...]} - with no session ids every scan is included, so the report is
+ * navigable exactly like the server's. Scans are read from {@link
+ * DiskDataStorage#defaultDirectory()}, the same directory the build wrote them to.
  */
 public class Exporter {
 
@@ -70,21 +70,10 @@ public class Exporter {
   public static void main(String[] args) throws IOException {
     List<String> arguments = new ArrayList<>(Arrays.asList(args));
 
-    String directory = DiskDataStorage.defaultDirectory();
-    if (!arguments.isEmpty()
-        && (arguments.get(0).equals("--dir") || arguments.get(0).equals("-d"))) {
-      if (arguments.size() < 2) {
-        System.err.println("usage: Exporter [--dir <scans>] [report.html] [sessionId...]");
-        System.exit(1);
-      }
-      arguments.remove(0);
-      directory = arguments.remove(0);
-    }
-
     File output = new File(arguments.isEmpty() ? "report.html" : arguments.remove(0));
     Set<String> sessionIds = new HashSet<>(arguments);
 
-    DiskDataStorage diskDataStorage = new DiskDataStorage(directory);
+    DiskDataStorage diskDataStorage = new DiskDataStorage();
     Map<String, Object> data = new LinkedHashMap<>();
     List<ProjectSummary> projectSummaries = new ArrayList<>();
     int sessions = 0;

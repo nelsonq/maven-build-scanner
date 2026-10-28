@@ -139,15 +139,16 @@ public class LifecycleProfiler extends AbstractEventSpy {
 
             LOGGER.info("To view your build scan, start-up the server:");
             LOGGER.info(
-                "java -jar {} {}",
+                "java -D{}={} -jar {}",
+                DiskDataStorage.DIRECTORY_PROPERTY,
+                DiskDataStorage.defaultDirectory(),
                 mavenHome
                     + File.separator
                     + "lib"
                     + File.separator
                     + "ext"
                     + File.separator
-                    + "maven-build-scanner-jar-with-dependencies.jar",
-                DiskDataStorage.defaultDirectory());
+                    + "maven-build-scanner-jar-with-dependencies.jar");
             LOGGER.info(
                 "Then open http://localhost:3000/?projectId={}&sessionId={}",
                 sessionProfile.getProject().getId(),
