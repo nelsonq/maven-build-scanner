@@ -83,6 +83,7 @@ public class Server {
           }
         });
 
+    System.out.println("Reading scans from " + diskDataStorage.getDirectory());
     System.out.println("Open http://localhost:3000 to view build scan results");
     server.start();
   }
